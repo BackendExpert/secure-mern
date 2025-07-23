@@ -20,9 +20,9 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     try {
-        const user = await User.findOne({ username }).populate("role");
+        const user = await User.findOne({ email }).populate("role");
         if (!user) return res.status(404).json({ message: "User not found" });
 
         const match = await bcrypt.compare(password, user.password);
@@ -31,6 +31,7 @@ exports.login = async (req, res) => {
         const token = generateToken(user._id, user.role.name);
         res.json({ token, user });
     } catch (err) {
+        console.error("Login error:", err);
         res.status(500).json({ message: "Login failed" });
     }
 };

@@ -21,7 +21,9 @@ function secureMern(app, options = {}) {
     });
 
     app.use(limiter);
-    app.use(csrf({ cookie: true }));
+
+    // CSRF middleware disabled for now
+    // app.use(csrf({ cookie: true }));
 
     app.use("/auth", authRoutes);
 }
