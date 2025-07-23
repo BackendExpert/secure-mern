@@ -74,3 +74,23 @@ MONGO_URI = mongodb://127.0.0.1:27017/testSMERN
 JWT_SECRET = your_jwt_secret_key
 
 ```
+
+- MONGO_URI: Your MongoDB connection string.
+
+- JWT_SECRET: Used to sign and verify JWT tokens.
+
+## 🧰 What’s Included in secureMern(app)
+
+- The following middleware is applied automatically:
+
+| Middleware            | Description                                                     |
+| --------------------- | --------------------------------------------------------------- |
+| `cors`                | Enables cross-origin resource sharing                           |
+| `helmet`              | Sets secure HTTP headers                                        |
+| `express.json()`      | Parses incoming JSON requests                                   |
+| `cookie-parser`       | Parses cookies (needed for CSRF support)                        |
+| `morgan`              | Logs HTTP requests for development                              |
+| `express-rate-limit`  | Protects against brute-force attacks (100 reqs per 15 min)      |
+| `csurf` *(optional)*  | CSRF protection middleware (included but commented for testing) |
+| `/auth` route support | Automatically mounts authentication routes                      |
+
