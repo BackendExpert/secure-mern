@@ -94,3 +94,115 @@ JWT_SECRET = your_jwt_secret_key
 | `csurf` *(optional)*  | CSRF protection middleware (included but commented for testing) |
 | `/auth` route support | Automatically mounts authentication routes                      |
 
+- - 💡 You can easily extend or configure these middlewares as needed.
+
+## 👥 Models
+
+- 📄 `User.js`
+
+- - Predefined Mongoose schema for User:
+
+```js
+
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema({
+    fullName: { type: String, required: true, trim: true },
+    username: { type: String, required: true, unique: true, lowercase: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    password: { type: String, required: true },
+    phone: String,
+    avatar: String,
+    role: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
+    isActive: { type: Boolean, default: true },
+    isEmailVerified: { type: Boolean, default: false },
+    lastLogin: Date,
+}, { timestamps: true });
+
+module.exports = mongoose.model("User", userSchema);
+
+
+```
+
+- 📄 `Role.js`
+
+- - Defines roles and permissions for RBAC:
+
+```js
+
+const mongoose = require("mongoose");
+
+const roleSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  permissions: [{ type: String }],
+}, { timestamps: true });
+
+module.exports = mongoose.model("Role", roleSchema);
+
+
+```
+
+## 🧪 Development & Testing Setup
+
+- You can populate roles using MongoDB shell or Compass:
+
+```js
+db.roles.insertMany([
+  {
+    name: "admin",
+    permissions: [
+      "user:create", "user:read", "user:update", "user:delete",
+      "role:create", "role:read", "role:update", "role:delete"
+    ]
+  },
+  {
+    name: "editor",
+    permissions: [
+      "user:read", "user:update",
+      "content:create", "content:read", "content:update"
+    ]
+  },
+  {
+    name: "viewer",
+    permissions: [
+      "content:read", "user:read"
+    ]
+  }
+]);
+
+
+```
+
+
+## 🔮 Future Roadmap
+
+✅ Rate limiting
+
+✅ CSRF protection (toggleable)
+
+🔁 Refresh tokens
+
+🔒 2FA integration
+
+🌐 OAuth2 / SSO login
+
+🧑‍💻 Admin panel templates (React + Tailwind)
+
+🧠 Audit logging & IP tracking
+
+📊 Usage analytics
+
+
+## 🤝 Contributing
+We welcome contributions! To get started:
+
+- Fork the repo
+
+- Run it locally (npm install)
+
+- Submit pull requests or open issues
+
+
+## 🙌 Acknowledgments
+
+Built with ❤️ for MERN developers who value security-first architecture.
