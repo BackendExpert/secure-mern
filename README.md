@@ -2,7 +2,7 @@
 
 A lightweight yet powerful npm package to enhance security in MERN stack applications. Built with enterprise-grade architecture in mind, secure-mern helps you integrate essential security features with minimal configuration.
 
-# ✅ Features
+## ✅ Features
 
 🔐 Preconfigured JWT-based authentication
 
@@ -26,7 +26,9 @@ A lightweight yet powerful npm package to enhance security in MERN stack applica
 
 
 
-- just install the via npm
+## 📦 Installation
+
+- Install using npm:
 
 ```bash
 
@@ -34,7 +36,9 @@ npm i secure-mern
 
 ```
 
-## how to use
+## 🚀 Quick Start
+
+- Here’s how to get started with `secure-mern`:
 
 ```js
 
@@ -45,6 +49,8 @@ const secureMern = require("secure-mern");
 require("dotenv").config();
 
 const app = express();
+
+// Apply secureMERN middleware to your app
 secureMern(app);
 
 mongoose.connect(process.env.MONGO_URI)
@@ -58,106 +64,13 @@ mongoose.connect(process.env.MONGO_URI)
 
 ```
 
-- this is sample code 
-- you must create `.env` file and define following values
+## ⚙️ Environment Setup
+
+- Create a `.env` file in your root directory and define:
 
 ```env
 
 MONGO_URI = mongodb://127.0.0.1:27017/testSMERN
-JWT_SECRET = 'jwt-secret'
+JWT_SECRET = your_jwt_secret_key
 
 ```
-- - MONGO_URI - change according to your database (for testing keep this if you like)
-- - JWT_SECRET - change according to your JWT_SECRET (for testing keep this if you like)
-
-## for development
-
-- - `User.js` User model
-
-```js
-
-const mongoose = require("mongoose");
-
-const userSchema = new mongoose.Schema({
-    fullName: { type: String, required: true, trim: true },
-    username: { type: String, required: true, unique: true, lowercase: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true },
-    phone: String,
-    avatar: String,
-    role: { type: mongoose.Schema.Types.ObjectId, ref: "Role", required: true },
-    isActive: { type: Boolean, default: true },
-    isEmailVerified: { type: Boolean, default: false },
-    lastLogin: Date,
-}, { timestamps: true });
-
-module.exports = mongoose.model("User", userSchema);
-
-
-```
-
-- - `Role.js` Role model
-- - - contains permisstions to user
-
-```js
-
-const mongoose = require("mongoose");
-
-const roleSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  permissions: [{ type: String }],
-}, { timestamps: true });
-
-module.exports = mongoose.model("Role", roleSchema);
-
-
-```
-
-- for development use this data 
-- - open mongodb compass
-- - add via shell
-
-```js
-
-db.roles.insertMany([
-  {
-    name: "admin",
-    permissions: [
-      "user:create",
-      "user:read",
-      "user:update",
-      "user:delete",
-      "role:create",
-      "role:read",
-      "role:update",
-      "role:delete"
-    ]
-  },
-  {
-    name: "editor",
-    permissions: [
-      "user:read",
-      "user:update",
-      "content:create",
-      "content:read",
-      "content:update"
-    ]
-  },
-  {
-    name: "viewer",
-    permissions: [
-      "content:read",
-      "user:read"
-    ]
-  }
-]);
-
-
-```
-
-## future updates
-
-- make securty same for developed enterpice level apps
-
-
-
