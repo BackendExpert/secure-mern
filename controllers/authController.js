@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const generateToken = require("../utils/generateToken");
 const crypto = require('crypto')
 const sendEmail = require("../utils/emailTransporter");
+const jwt = require('jsonwebtoken')
 
 const authContorller = {
     register: async (req, res) => {
@@ -106,50 +107,54 @@ const authContorller = {
         }
     },
 
+
     veriftEamilOTP: async (req, res) => {
         try {
             const token = req.header("Authorization")?.replace("Bearer ", "");
             if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
 
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token expired. Please log in again." });
+                }
+                return res.status(400).json({ message: "Invalid token." });
+            }
+
             const user = await User.findOne({ email: decoded.email }).select("-password");
             if (!user) return res.status(404).json({ message: "User not found" });
 
-            const checkotprecode = await UserOTP.findOne({ email: decoded.email })
-
+            const checkotprecode = await UserOTP.findOne({ email: decoded.email });
             if (!checkotprecode) {
-                return res.status(404).json({ message: "OTP Reocode Not found" });
+                return res.status(404).json({ message: "OTP Record Not found" });
             }
 
-            const { otp } = req.body
-
-            const otpcheck = await bcrypt.compare(otp, checkotprecode.otp)
-
+            const { otp } = req.body;
+            const otpcheck = await bcrypt.compare(otp, checkotprecode.otp);
             if (!otpcheck) {
-                return res.status(404).json({ message: "OTP Not Match" })
+                return res.status(404).json({ message: "OTP does not match" });
             }
 
             const updateuser = await User.findOneAndUpdate(
                 { email: decoded.email },
                 { $set: { isEmailVerified: true } },
                 { new: true }
-            )
+            );
 
             if (updateuser) {
-                if (updateuser) {
-                    const deleteotp = await UserOTP.findOneAndDelete({ email: decoded.email })
-                    if (deleteotp) {
-                        return res.json({ success: true, message: "Email Verification Successful" })
-                    }
+                const deleteotp = await UserOTP.findOneAndDelete({ email: decoded.email });
+                if (deleteotp) {
+                    return res.json({ success: true, message: "Email Verification Successful" });
                 }
-            }
-            else {
-                return res.json({ success: false, message: "Internal Server Error" })
+            } else {
+                return res.status(500).json({ success: false, message: "Internal Server Error" });
             }
 
-        }
-        catch (err) {
-            console.log(err)
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ message: "Something went wrong" });
         }
     },
 
