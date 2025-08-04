@@ -236,7 +236,7 @@ const authContorller = {
                 subject: "Password Reset Code",
                 html: `
                         <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
-                            <h2 style="color: #333;">Hello ${username},</h2>
+                            <h2 style="color: #333;">Hello ${checkemail.username},</h2>
                             <p>For your Password Reset, please use the code below:</p>
 
                             <div style="font-size: 24px; font-weight: bold; background-color: #f2f2f2; padding: 10px 20px; text-align: center; border-radius: 6px; color: #2c3e50; letter-spacing: 2px;">
@@ -326,38 +326,41 @@ const authContorller = {
 
     updaete_password: async (req, res) => {
         try {
-            const {
-                email,
-                new_password
-            } = req.body
+            const token = req.header("Authorization")?.replace("Bearer ", "");
+            if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
 
-            const checkemail = await User.findOne({ email: email })
-
-            if (!checkemail) {
-                return res.json({ success: false, message: "User cannot found" })
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token expired. Please log in again." });
+                }
+                return res.status(400).json({ message: "Invalid token." });
             }
 
-            const hashpass = await bcrypt.hash(new_password, 10)
+            console.log("Decoded Token:", decoded);
 
-            const updaetpassword = await User.findOneAndUpdate(
-                { email: email },
-                {
-                    $set: {
-                        password: hashedPassword
-                    }
-                },
+            const user = await User.findOne({ email: decoded.email }).select("-password");
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            const { new_password } = req.body;
+            const hashpass = await bcrypt.hash(new_password, 10);
+
+            const updatedUser = await User.findOneAndUpdate(
+                { email: decoded.email },
+                { $set: { password: hashpass } },
                 { new: true }
-            )
+            );
 
-            if(updaetpassword){
-                return res.json({ success: true, message: "Password Updated Succesful"})
+            if (updatedUser) {
+                return res.json({ success: true, message: "Password updated successfully." });
+            } else {
+                return res.status(500).json({ success: false, message: "Internal server error." });
             }
-            else{
-                return res.json({ success: false, message: "Internel Server Error"})
-            }
-        }
-        catch (err) {
-            console.log(err)
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Server error." });
         }
     }
 }
