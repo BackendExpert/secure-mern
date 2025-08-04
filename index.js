@@ -7,8 +7,10 @@ const csrf = require("csurf");
 const morgan = require("morgan");
 
 const authRoutes = require("./routes/authRoutes");
+const ConnectDB = require("./config/DB");
 
 function secureMern(app, options = {}) {
+    ConnectDB()
     app.use(cors());
     app.use(helmet());
     app.use(express.json());
