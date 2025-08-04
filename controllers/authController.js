@@ -203,6 +203,21 @@ const authContorller = {
         catch (err) {
             console.log(err)
         }
+    },
+
+    passwordforget_emailverify: async (req, res) => {
+        try {
+            const { email } = req.body
+
+            const checkemail = await User.findOne({ email: email })
+
+            if(!checkemail){
+                return res.json({ success: false, message: "Email Address Cannot Found,.. Please check the email Address and Try Again"})
+            }
+        }
+        catch (err) {
+            console.log(err)
+        }
     }
 }
 
