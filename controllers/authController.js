@@ -82,7 +82,7 @@ const authContorller = {
                 const resultcreateotp = await createotprecode.save()
 
                 if (resultcreateotp) {
-                    const token = tokenCreator(
+                    const token = generateToken(
                         {
                             email: email,
                             otp: otp
@@ -172,10 +172,18 @@ const authContorller = {
                 return res.json({ success: false, message: "Password Not Match" })
             }
 
+            if (checkuser.isEmailVerified === false) {
+                return res.json({ success: false, message: "Your email is not Verify..." })
+            }
+
+            if (checkuser.isActive === false) {
+                return res.json({ success: false, message: "Your Account is not Active..." })
+            }
+
             const getuserrole = await Role.findById(checkuser.role)
 
 
-            const token = tokenCreator(
+            const token = generateToken(
                 {
                     id: checkuser._id,
                     email: checkuser.email,
@@ -185,7 +193,7 @@ const authContorller = {
                 '1d'
             );
 
-            return res.json({ success: true, token: token, message: "Login Success"})
+            return res.json({ success: true, token: token, message: "Login Success" })
         }
         catch (err) {
             console.log(err)
