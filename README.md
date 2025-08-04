@@ -193,6 +193,13 @@ db.roles.insertMany([
 📊 Usage analytics
 
 
+## Versioning
+
+| Version            | Description                                                     |
+| --------------------- | --------------------------------------------------------------- |
+| v1.0.0                | inital Release                           |
+| v2.0.0                | update (adding emailverify, forgetpass)                                    |
+
 ## 🤝 Contributing
 We welcome contributions! To get started:
 
