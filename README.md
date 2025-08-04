@@ -50,16 +50,15 @@ require("dotenv").config();
 
 const app = express();
 
-// Apply secureMERN middleware to your app
 secureMern(app);
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
-        app.listen(5000, () => {
-            console.log("Server running on port 5000");
-        });
-    })
-    .catch(err => console.log(err));
+app.get('/', (req, res) => {
+    res.send(`Server running on port ${process.env.PORT}`);
+})
+
+app.listen(process.env.PORT, () => {
+    console.log(`Server running on port ${process.env.PORT}`);
+});
 
 
 ```
@@ -70,8 +69,12 @@ mongoose.connect(process.env.MONGO_URI)
 
 ```env
 
-MONGO_URI = mongodb://127.0.0.1:27017/testSMERN
+MONGO_URI = mongodb://127.0.0.1:27017/newMERNtestAuth
 JWT_SECRET = your_jwt_secret_key
+PORT=5000
+
+EMAIL_USER=your_email_address
+EMAIL_PASSWORD=your_app_password
 
 ```
 
@@ -191,6 +194,14 @@ db.roles.insertMany([
 🧠 Audit logging & IP tracking
 
 📊 Usage analytics
+
+
+## Versioning
+
+| Version | Description                                      |
+|---------|--------------------------------------------------|
+| v1.0.0  | Initial release                                  |
+| v2.0.0  | Added email verification and forgot password     |
 
 
 ## 🤝 Contributing
