@@ -88,7 +88,7 @@ const authContorller = {
                             email: email,
                             otp: otp
                         },
-                        '5min'
+                        '15min'
                     );
 
                     return res.json({ success: true, token: token, message: "Registation Success, Verification Email send to your email" })
@@ -211,8 +211,149 @@ const authContorller = {
 
             const checkemail = await User.findOne({ email: email })
 
-            if(!checkemail){
-                return res.json({ success: false, message: "Email Address Cannot Found,.. Please check the email Address and Try Again"})
+            if (!checkemail) {
+                return res.json({ success: false, message: "Email Address Cannot Found,.. Please check the email Address and Try Again" })
+            }
+            const checkotp = await UserOTP.findOne({ email: email })
+
+            if (checkotp) {
+                return res.json({ success: false, message: 'User Already Reqeust OTP, Please wait and try agin later' })
+            }
+
+            function generateOTP(length = 8) {
+                return crypto
+                    .randomBytes(length)
+                    .toString('base64')
+                    .replace(/[^a-zA-Z0-9]/g, '')
+                    .slice(0, length);
+            }
+
+            const otp = generateOTP();
+
+
+            await sendEmail({
+                to: email,
+                subject: "Password Reset Code",
+                html: `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
+                            <h2 style="color: #333;">Hello ${username},</h2>
+                            <p>For your Password Reset, please use the code below:</p>
+
+                            <div style="font-size: 24px; font-weight: bold; background-color: #f2f2f2; padding: 10px 20px; text-align: center; border-radius: 6px; color: #2c3e50; letter-spacing: 2px;">
+                                ${otp}
+                            </div>
+
+                            <p style="margin-top: 20px;">This code is valid for the next 10 minutes. Please do not share it with anyone.</p>
+
+                            <p>Best regards,<br><strong>Hotel Team</strong></p>
+                        </div>
+                    `,
+            });
+
+            const hashotp = await bcrypt.hash(otp, 10)
+
+            const createotprecode = new UserOTP({
+                email: email,
+                otp: hashotp
+            })
+
+            const resultcreateotp = await createotprecode.save()
+
+            if (resultcreateotp) {
+                const token = generateToken(
+                    {
+                        id: checkemail._id,
+                        email: checkemail.email,
+                    },
+                    '15min'
+                );
+                return res.json({ success: true, token: token, message: "Password Reset Code has been send to email, check the emails" })
+            }
+            else {
+                return res.json({ success: false, message: "Internal Server Error" })
+            }
+        }
+        catch (err) {
+            console.log(err)
+        }
+    },
+
+    checkpassword_resetotp: async (req, res) => {
+        try {
+            const token = req.header("Authorization")?.replace("Bearer ", "");
+            if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
+
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token expired. Please log in again." });
+                }
+                return res.status(400).json({ message: "Invalid token." });
+            }
+
+            const user = await User.findOne({ email: decoded.email }).select("-password");
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            const checkotprecode = await UserOTP.findOne({ email: decoded.email });
+            if (!checkotprecode) {
+                return res.status(404).json({ message: "OTP Record Not found" });
+            }
+
+            const { otp } = req.body
+
+            const checkotp = await bcrypt.compare(otp, checkotprecode.otp)
+
+            if (!checkotp) {
+                return res.json({ success: false, message: "OTP not Match, Please check the OTP" })
+            }
+
+            const deleteotprecode = await UserOTP.findOneAndDelete({ email: decoded.email })
+
+            if (deleteotprecode) {
+                return res.json({ success: false, message: "OTP Verification Successfull" })
+            }
+            else {
+                return res.json({ success: false, message: "Internal Server Error" })
+            }
+
+        }
+        catch (err) {
+            console.log(err)
+        }
+    },
+
+    updaete_password: async (req, res) => {
+        try {
+            const {
+                email,
+                new_password
+            } = req.body
+
+            const checkemail = await User.findOne({ email: email })
+
+            if (!checkemail) {
+                return res.json({ success: false, message: "User cannot found" })
+            }
+
+            const hashpass = await bcrypt.hash(new_password, 10)
+
+            const updaetpassword = await User.findOneAndUpdate(
+                { email: email },
+                {
+                    $set: {
+                        password: hashedPassword
+                    }
+                },
+                { new: true }
+            )
+
+            if(updaetpassword){
+                return res.json({ success: true, message: "Password Updated Succesful"})
+            }
+            else{
+                return res.json({ success: false, message: "Internel Server Error"})
             }
         }
         catch (err) {
