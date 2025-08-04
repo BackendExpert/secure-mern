@@ -155,18 +155,40 @@ const authContorller = {
 
     login: async (req, res) => {
         try {
-            const { email, password } = req.body;
-            const user = await User.findOne({ email }).populate("role");
-            if (!user) return res.status(404).json({ message: "User not found" });
+            const {
+                email,
+                password
+            } = req.body
 
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) return res.status(400).json({ message: "Invalid credentials" });
+            const checkuser = await User.findOne({ email: email })
 
-            const token = generateToken(user._id, user.role.name);
-            res.json({ token, user });
-        } catch (err) {
-            console.error("Login error:", err);
-            res.status(500).json({ message: "Login failed" });
+            if (!checkuser) {
+                return res.json({ success: false, message: "User Not in Database" })
+            }
+
+            const checkpass = await bcrypt.compare(password, checkuser.password)
+
+            if (!checkpass) {
+                return res.json({ success: false, message: "Password Not Match" })
+            }
+
+            const getuserrole = await Role.findById(checkuser.role)
+
+
+            const token = tokenCreator(
+                {
+                    id: checkuser._id,
+                    email: checkuser.email,
+                    username: checkuser.username,
+                    role: getuserrole.name
+                },
+                '1d'
+            );
+
+            return res.json({ success: true, token: token, message: "Login Success"})
+        }
+        catch (err) {
+            console.log(err)
         }
     }
 }
