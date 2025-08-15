@@ -1,5 +1,6 @@
 // middlewares/checkPermission.js
 const Role = require("../models/Role");
+const jwt = require('jsonwebtoken')
 
 const checkPermission = (requiredPermissions = []) => {
     return async (req, res, next) => {

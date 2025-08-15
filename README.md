@@ -16,6 +16,8 @@ A lightweight yet powerful npm package to enhance security in MERN stack applica
 
 🚫 Rate limiting included (enabled by default)
 
+🚫 Rate limiting included (rate limit not include for admin roles - v3.0.0 update)
+
 ⚠️ CSRF protection included (commented for now, easy to enable)
 
 📜 Predefined User and Role Mongoose schemas
@@ -94,6 +96,7 @@ EMAIL_PASSWORD=your_app_password
 | `cookie-parser`       | Parses cookies (needed for CSRF support)                        |
 | `morgan`              | Logs HTTP requests for development                              |
 | `express-rate-limit`  | Protects against brute-force attacks (100 reqs per 15 min)      |
+| `express-rate-limit`  | no limites for `admin` roles      |
 | `csurf` *(optional)*  | CSRF protection middleware (included but commented for testing) |
 | `/auth` route support | Automatically mounts authentication routes                      |
 
@@ -149,29 +152,82 @@ module.exports = mongoose.model("Role", roleSchema);
 
 - You can populate roles using MongoDB shell or Compass:
 
-```js
-db.roles.insertMany([
-  {
-    name: "admin",
-    permissions: [
-      "user:create", "user:read", "user:update", "user:delete",
-      "role:create", "role:read", "role:update", "role:delete"
-    ]
+- use following json data to create role model, if needed
+
+```jssn
+
+[{
+  "_id": {
+    "$oid": "6837b60b735077d2866f126b"
   },
-  {
-    name: "editor",
-    permissions: [
-      "user:read", "user:update",
-      "content:create", "content:read", "content:update"
-    ]
+  "name": "admin",
+  "permissions": [
+    "role:manage",
+    "role:create",
+    "role:update",
+    "systemusers:manage",
+    "systemusers:create",
+    "systemusers:update",
+    "permission:manage",
+    "permission:create",
+    "permission:update",
+    "permission:delete",
+    "role:getone"
+  ],
+  "createdAt": {
+    "$date": "2025-05-29T01:19:07.542Z"
   },
-  {
-    name: "viewer",
-    permissions: [
-      "content:read", "user:read"
-    ]
-  }
-]);
+  "updatedAt": {
+    "$date": "2025-08-15T04:39:19.866Z"
+  },
+  "__v": 45
+},
+{
+  "_id": {
+    "$oid": "6837b616735077d2866f126e"
+  },
+  "name": "staff",
+  "permissions": [],
+  "createdAt": {
+    "$date": "2025-05-29T01:19:18.585Z"
+  },
+  "updatedAt": {
+    "$date": "2025-06-20T01:24:06.714Z"
+  },
+  "__v": 38
+},
+{
+  "_id": {
+    "$oid": "6843973fea08c312b1a7d4cb"
+  },
+  "name": "member",
+  "permissions": [
+    "user:create"
+  ],
+  "createdAt": {
+    "$date": "2025-06-07T01:34:55.181Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-15T03:25:26.656Z"
+  },
+  "__v": 4
+},
+{
+  "_id": {
+    "$oid": "68439748ea08c312b1a7d4d6"
+  },
+  "name": "user",
+  "permissions": [
+    "case:view"
+  ],
+  "createdAt": {
+    "$date": "2025-06-07T01:35:04.435Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-15T05:19:28.746Z"
+  },
+  "__v": 12
+}]
 
 
 ```
@@ -202,6 +258,7 @@ db.roles.insertMany([
 |---------|--------------------------------------------------|
 | v1.0.0  | Initial release                                  |
 | v2.0.0  | Added email verification and forgot password     |
+| v3.0.0  | fix bugs in v2.0.0, no rate limites for `admin`  |
 
 
 ## 🤝 Contributing
