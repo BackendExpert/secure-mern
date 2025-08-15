@@ -152,6 +152,8 @@ module.exports = mongoose.model("Role", roleSchema);
 
 - You can populate roles using MongoDB shell or Compass:
 
+- use following json data to create role model, if needed
+
 ```jssn
 
 [{
@@ -256,6 +258,7 @@ module.exports = mongoose.model("Role", roleSchema);
 |---------|--------------------------------------------------|
 | v1.0.0  | Initial release                                  |
 | v2.0.0  | Added email verification and forgot password     |
+| v3.0.0  | fix bugs in v2.0.0, no rate limites for `admin`  |
 
 
 ## 🤝 Contributing
