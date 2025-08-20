@@ -14,7 +14,7 @@ npm i secure-mern@3.0.0
 
 ```
 
-- v4.0.0-beta1 has some bugs and errors (ongoin fixing and development)
+- v4.0.0-beta1 has some bugs and errors (ongoing fixing and development)
 
 - your are free to use v4.0.0-beta1 (producation-ready) if you need to know that are there
 
@@ -354,6 +354,8 @@ EMAIL_PASSWORD=your_app_password
 | `express-rate-limit`  | no limites for `admin` roles      |
 | `csurf` *(optional)*  | CSRF protection middleware (included but commented for testing) |
 | `/auth` route support | Automatically mounts authentication routes                      |
+| adding profile image view, upload | User can upload and view profile image               |
+| autometically track user activities | user activity tracking autometically               |
 
 - - 💡 You can easily extend or configure these middlewares as needed.
 
@@ -514,6 +516,7 @@ module.exports = mongoose.model("Role", roleSchema);
 | v1.0.0  | Initial release                                  |
 | v2.0.0  | Added email verification and forgot password     |
 | v3.0.0  | fix bugs in v2.0.0, no rate limites for `admin`  |
+| v4.0.0-beta1  | in-development (please use v3.0.0)  |
 
 
 ## 🤝 Contributing
