@@ -71,6 +71,47 @@ app.listen(process.env.PORT, () => {
 
 ```
 
+- for uploads
+
+```js
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+```
+
+- create `uploads` folder in your root backend folder
+
+- if use git repo add this to `.gitignore` file
+
+- create custom middleware for file uploads (default npm package doesnt have this middleware)
+
+- - in root backend folder
+
+- - middlewares/uploadMiddleware.js create this file and past following content to it
+
+```js
+
+const multer = require("multer");
+const path = require("path");
+
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage });
+
+module.exports = upload;
+
+
+
+```
+
 ## ⚙️ Environment Setup
 
 - Create a `.env` file in your root directory and define:
