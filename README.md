@@ -215,6 +215,90 @@ module.exports = logUserAction;
 
 ```
 
+### Profile Image Upload and view
+
+- for this ProfileImage.js model already in this package 
+
+- need to do only things is fix frontend (for view Image)
+
+- sample code 
+
+```js
+
+import React, { useState, useEffect } from 'react'
+import API from '../../../services/api'
+
+const Profile = () => {
+    const [activeTab, setActiveTab] = useState("profile")
+    const [pimg, setPimg] = useState(null)
+    const [imgSrc, setImgSrc] = useState("/default-avatar.png") // fallback
+    const token = localStorage.getItem('token')
+
+    // Fetch profile image path from backend
+    useEffect(() => {
+        const fetchProfileImage = async () => {
+            try {
+                const res = await API.get(`/auth/get-profile-img?nocache=${Date.now()}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
+                        Expires: "0",
+                    },
+                })
+                setPimg(res.data.result || null)
+            } catch (err) {
+                console.error("Failed to fetch profile image:", err)
+                setError("Could not load profile image")
+                setPimg(null)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchProfileImage()
+    }, [token])
+
+    // Fetch actual image blob safely to avoid CORS issues
+    useEffect(() => {
+        if (pimg?.profile_image) {
+            const normalizedPath = pimg.profile_image.replace(/\\/g, "/")
+            const url = `${import.meta.env.VITE_APP_API}${normalizedPath.startsWith("/") ? "" : "/"}${normalizedPath}`
+
+            fetch(url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const localUrl = URL.createObjectURL(blob)
+                    setImgSrc(localUrl)
+                })
+                .catch(err => {
+                    console.error("Failed to load image blob:", err)
+                    setImgSrc("/default-avatar.png")
+                })
+        } else {
+            setImgSrc("/default-avatar.png")
+        }
+    }, [pimg])
+
+    return (
+        <div className="max-w-8xl mx-auto p-6">
+            <div className="">
+              <img
+                src={imgSrc}
+                alt="profile"
+                className="w-40 h-40 rounded-full border-4 border-violet-600 object-cover shadow-md"
+              />
+            </div>
+        </div>
+    )
+}
+
+export default Profile
+
+```
+
+- sometime got errors or bugs (waiting for next major release v4.0.0  this is v4.0.0-beta1 (production-ready))
+
 
 ## ⚙️ Environment Setup
 
