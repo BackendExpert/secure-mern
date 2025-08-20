@@ -2,6 +2,26 @@
 
 A lightweight yet powerful npm package to enhance security in MERN stack applications. Built with enterprise-grade architecture in mind, secure-mern helps you integrate essential security features with minimal configuration.
 
+### Important Note:
+
+- The Latest version is v4.0.0-beta1 - under development 
+
+- please use v3.0.0
+
+```bash
+
+npm i secure-mern@3.0.0
+
+```
+
+- v4.0.0-beta1 has some bugs and errors (ongoin fixing and development)
+
+- your are free to use v4.0.0-beta1 (producation-ready) if you need to know that are there
+
+- use this link to view development of (v4.0.0-beta1)
+
+[Secure-MERN GitRepo v4.0.0-beta1](https://github.com/BackendExpert/secure-mern/tree/v4.0.0)
+
 ## ✅ Features
 
 🔐 Preconfigured JWT-based authentication
