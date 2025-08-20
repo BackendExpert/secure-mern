@@ -1,188 +1,139 @@
-# 🔐 Secure-MERN
+# 🔐 Secure-MERN  
 
-A lightweight yet powerful npm package to enhance security in MERN stack applications. Built with enterprise-grade architecture in mind, secure-mern helps you integrate essential security features with minimal configuration.
+**A lightweight yet powerful npm package to supercharge security in MERN stack applications.**  
+Built with **enterprise-grade architecture** in mind, Secure-MERN integrates essential security features with **minimal configuration**.  
 
-### Important Note:
+---
 
-- The Latest version is v4.0.0-beta1 - under development 
+## ⚠️ Important Notice  
 
-- please use v3.0.0
+- **Latest Version:** `v4.0.0-beta1` *(under development)*  
+- **Recommended Version:** `v3.0.0` *(stable & production-ready)*  
+
+📦 Install v3.0.0 directly:  
 
 ```bash
-
 npm i secure-mern@3.0.0
-
 ```
 
-- v4.0.0-beta1 has some bugs and errors (ongoing fixing and development)
+👉 You may still use **v4.0.0-beta1** (production-ready), but it contains known bugs under active development.  
 
-- your are free to use v4.0.0-beta1 (producation-ready) if you need to know that are there
+🔗 Development branch for `v4.0.0-beta1`:  
+[Secure-MERN GitRepo v4.0.0-beta1](https://github.com/BackendExpert/secure-mern/tree/v4.0.0)  
 
-- use this link to view development of (v4.0.0-beta1)
+---
 
-[Secure-MERN GitRepo v4.0.0-beta1](https://github.com/BackendExpert/secure-mern/tree/v4.0.0)
+## ✅ Features  
 
-## ✅ Features
+- 🔐 Preconfigured **JWT-based authentication**  
+- 🔑 **Role-based access control** with fine-grained permissions  
+- 🧰 Centralized **security middleware** for Express apps  
+- 🧼 Built-in **sanitization & validation**  
+- 🛡️ **Helmet** integration for HTTP header protection  
+- 🚫 **Rate limiting** enabled by default *(excluded for Admin roles in v3.0.0)*  
+- ⚠️ **CSRF protection** included (commented out, easily enabled)  
+- 📜 Predefined **User & Role Mongoose schemas**  
+- 🧪 Perfect for **small projects → enterprise-grade systems**  
+- 🌱 Simple **plug-and-play** into any MERN app  
+- 👤 **User profile management** *(image upload & view — needs extra setup)*  
+- 🔒 **Password update via dashboard** *(planned development)*  
+- 📑 **Automatic user activity logs** *(requires setup — guide below)*  
 
-🔐 Preconfigured JWT-based authentication
+---
 
-🔑 Role-based access control with granular permissions
+## 📦 Installation  
 
-🧰 Centralized security middleware for Express apps
-
-🧼 Built-in sanitization and validation
-
-🛡️ Helmet integration for HTTP header security
-
-🚫 Rate limiting included (enabled by default)
-
-🚫 Rate limiting included (rate limit not include for admin roles - v3.0.0 update)
-
-⚠️ CSRF protection included (commented for now, easy to enable)
-
-📜 Predefined User and Role Mongoose schemas
-
-🧪 Suitable for small projects to enterprise-grade systems
-
-🌱 Easy to plug into any existing or new MERN stack app
-
-👤 User profile management (update & view profile image) — Additional development needed
-
-🔒 User password update via dashboard — Additional development needed
-
-📑 User activity logs automatically recorded — Additional development needed
-
-## 📦 Installation
-
-- Install using npm:
+Install with npm:  
 
 ```bash
-
 npm i secure-mern
-
 ```
 
-## 🚀 Quick Start
+---
 
-- Here’s how to get started with `secure-mern`:
+## 🚀 Quick Start  
+
+Example Express app setup:  
 
 ```js
-
 const express = require("express");
 const mongoose = require("mongoose");
 const secureMern = require("secure-mern");
-const path = require('path')
+const path = require('path');
 
 require("dotenv").config();
 
 const app = express();
 
+// Initialize Secure-MERN
 secureMern(app);
 
+// File serving for uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get('/', (req, res) => {
     res.send(`Server running on port ${process.env.PORT}`);
-})
+});
 
 app.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
 });
-
 ```
 
-## IMPORTANT - must need to do (if not this is not working)
+---
 
-### for uploads
+## 🔧 Required Setup  
+
+### 📂 Uploads Directory  
 
 ```js
-
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 ```
 
-- create `uploads` folder in your root backend folder
+- Create an `uploads` folder in your **backend root**  
+- Add `uploads/` to `.gitignore`  
+- Create a custom **upload middleware** (not included by default):  
 
-- if use git repo add this to `.gitignore` file
-
-- create custom middleware for file uploads (default npm package doesnt have this middleware)
-
-- - in root backend folder
-
-- - middlewares/uploadMiddleware.js create this file and past following content to it
+📄 `middlewares/uploadMiddleware.js`  
 
 ```js
-
 const multer = require("multer");
 const path = require("path");
 
-
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/");
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+    destination: (req, file, cb) => cb(null, "uploads/"),
+    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 
 const upload = multer({ storage });
 
 module.exports = upload;
-
 ```
 
-### for user activity logs
+---
 
-- create model in root backend folder
+### 📝 User Activity Logs  
 
-- - models/Userlogs.js (copy following content to in)
+📄 `models/Userlogs.js`  
 
 ```js
-
 const mongoose = require('mongoose');
 
 const UserlogsSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    action: {
-        type: String,
-        required: true,
-        default: 'other'
-    },
-    description: {
-        type: String,
-        trim: true
-    },
-    ipAddress: {
-        type: String
-    },
-    userAgent: {
-        type: String
-    },
-    metadata: {
-        type: Object,
-        default: {}
-    }
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    action: { type: String, required: true, default: 'other' },
+    description: { type: String, trim: true },
+    ipAddress: { type: String },
+    userAgent: { type: String },
+    metadata: { type: Object, default: {} }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Userlogs', UserlogsSchema);
-
-
 ```
 
-- create helper function for user activity logs
-
-- - in backend root folder
-
-- - utils/logUserAction.js
+📄 `utils/logUserAction.js`  
 
 ```js
-
-// utils/logUserAction.js
 const Userlogs = require('../models/Userlogs');
 const User = require('../node_modules/secure-mern/models/User');
 const jwt = require('jsonwebtoken');
@@ -191,182 +142,129 @@ const logUserAction = async (req, action, description, metadata = {}, userId = n
     try {
         let finalUserId = userId;
 
-        // If no userId provided manually, try to get it from token
         if (!finalUserId) {
             const token = req.header("Authorization")?.replace("Bearer ", "");
             if (token) {
                 try {
                     const decoded = jwt.verify(token, process.env.JWT_SECRET);
                     const user = await User.findOne({ email: decoded.email });
-                    if (user) {
-                        finalUserId = user._id;
-                    } else {
-                        throw new Error("User not found");
-                    }
-                } catch (err) {
+                    if (user) finalUserId = user._id;
+                } catch {
                     console.warn("Token invalid or expired. Provide userId manually if needed.");
                 }
             }
         }
 
-        if (!finalUserId) {
-            throw new Error("No userId provided and token not found or invalid");
-        }
-
-        const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        const userAgent = req.headers['user-agent'];
+        if (!finalUserId) throw new Error("No userId provided and token not found or invalid");
 
         await Userlogs.create({
             user: finalUserId,
             action,
             description,
-            ipAddress,
-            userAgent,
+            ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+            userAgent: req.headers['user-agent'],
             metadata
         });
-
     } catch (err) {
         console.error("Failed to log user action:", err.message);
     }
 };
 
 module.exports = logUserAction;
-
-
 ```
 
-### Profile Image Upload and view
+---
 
-- for this ProfileImage.js model already in this package 
+### 🖼 Profile Image Management  
 
-- need to do only things is fix frontend (for view Image)
+- `ProfileImage.js` model already included in package  
+- Only frontend integration required  
 
-- sample code 
+Sample React component:  
 
 ```js
-
 import React, { useState, useEffect } from 'react'
 import API from '../../../services/api'
 
 const Profile = () => {
-    const [activeTab, setActiveTab] = useState("profile")
     const [pimg, setPimg] = useState(null)
-    const [imgSrc, setImgSrc] = useState("/default-avatar.png") // fallback
+    const [imgSrc, setImgSrc] = useState("/default-avatar.png")
     const token = localStorage.getItem('token')
 
-    // Fetch profile image path from backend
     useEffect(() => {
         const fetchProfileImage = async () => {
             try {
                 const res = await API.get(`/auth/get-profile-img?nocache=${Date.now()}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Cache-Control": "no-cache",
-                        Pragma: "no-cache",
-                        Expires: "0",
-                    },
+                    headers: { Authorization: `Bearer ${token}` }
                 })
                 setPimg(res.data.result || null)
-            } catch (err) {
-                console.error("Failed to fetch profile image:", err)
-                setError("Could not load profile image")
+            } catch {
                 setPimg(null)
-            } finally {
-                setLoading(false)
             }
         }
-
         fetchProfileImage()
     }, [token])
 
-    // Fetch actual image blob safely to avoid CORS issues
     useEffect(() => {
         if (pimg?.profile_image) {
             const normalizedPath = pimg.profile_image.replace(/\\/g, "/")
             const url = `${import.meta.env.VITE_APP_API}${normalizedPath.startsWith("/") ? "" : "/"}${normalizedPath}`
-
-            fetch(url)
-                .then(res => res.blob())
-                .then(blob => {
-                    const localUrl = URL.createObjectURL(blob)
-                    setImgSrc(localUrl)
-                })
-                .catch(err => {
-                    console.error("Failed to load image blob:", err)
-                    setImgSrc("/default-avatar.png")
-                })
-        } else {
-            setImgSrc("/default-avatar.png")
+            fetch(url).then(res => res.blob()).then(blob => {
+                setImgSrc(URL.createObjectURL(blob))
+            }).catch(() => setImgSrc("/default-avatar.png"))
         }
     }, [pimg])
 
     return (
-        <div className="max-w-8xl mx-auto p-6">
-            <div className="">
-              <img
-                src={imgSrc}
-                alt="profile"
-                className="w-40 h-40 rounded-full border-4 border-violet-600 object-cover shadow-md"
-              />
-            </div>
+        <div className="p-6">
+            <img src={imgSrc} alt="profile" className="w-40 h-40 rounded-full border-4 border-violet-600 object-cover shadow-md" />
         </div>
     )
 }
 
 export default Profile
-
 ```
 
-- sometime got errors or bugs (waiting for next major release v4.0.0  this is v4.0.0-beta1 (production-ready))
+---
 
+## ⚙️ Environment Setup  
 
-## ⚙️ Environment Setup
-
-- Create a `.env` file in your root directory and define:
+📄 `.env`  
 
 ```env
-
-MONGO_URI = mongodb://127.0.0.1:27017/newMERNtestAuth
-JWT_SECRET = your_jwt_secret_key
+MONGO_URI=mongodb://127.0.0.1:27017/newMERNtestAuth
+JWT_SECRET=your_jwt_secret_key
 PORT=5000
 
 EMAIL_USER=your_email_address
 EMAIL_PASSWORD=your_app_password
-
 ```
 
-- MONGO_URI: Your MongoDB connection string.
+---
 
-- JWT_SECRET: Used to sign and verify JWT tokens.
+## 🧰 Included Middleware  
 
-## 🧰 What’s Included in secureMern(app)
+| Middleware             | Purpose                                                   |
+|-------------------------|-----------------------------------------------------------|
+| `cors`                 | Enables CORS (cross-origin requests)                      |
+| `helmet`               | Adds secure HTTP headers                                  |
+| `express.json()`       | Parses incoming JSON                                     |
+| `cookie-parser`        | Parses cookies (needed for CSRF)                         |
+| `morgan`               | HTTP request logger                                      |
+| `express-rate-limit`   | Protects against brute-force (100 reqs/15min)            |
+| *(Admin exception)*    | No rate limit for `admin` role                           |
+| `csurf` (optional)     | CSRF protection (disabled by default)                     |
+| `/auth` routes         | Built-in authentication routes                           |
+| Profile image support  | Upload & view profile image                              |
+| Activity tracking      | Auto-records user actions                                |
 
-- The following middleware is applied automatically:
+---
 
-| Middleware            | Description                                                     |
-| --------------------- | --------------------------------------------------------------- |
-| `cors`                | Enables cross-origin resource sharing                           |
-| `helmet`              | Sets secure HTTP headers                                        |
-| `express.json()`      | Parses incoming JSON requests                                   |
-| `cookie-parser`       | Parses cookies (needed for CSRF support)                        |
-| `morgan`              | Logs HTTP requests for development                              |
-| `express-rate-limit`  | Protects against brute-force attacks (100 reqs per 15 min)      |
-| `express-rate-limit`  | no limites for `admin` roles      |
-| `csurf` *(optional)*  | CSRF protection middleware (included but commented for testing) |
-| `/auth` route support | Automatically mounts authentication routes                      |
-| adding profile image view, upload | User can upload and view profile image               |
-| autometically track user activities | user activity tracking autometically               |
+## 👥 Models  
 
-- - 💡 You can easily extend or configure these middlewares as needed.
-
-## 👥 Models
-
-- 📄 `User.js`
-
-- - Predefined Mongoose schema for User:
+📄 `User.js`  
 
 ```js
-
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
@@ -383,16 +281,11 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
-
-
 ```
 
-- 📄 `Role.js`
-
-- - Defines roles and permissions for RBAC:
+📄 `Role.js`  
 
 ```js
-
 const mongoose = require("mongoose");
 
 const roleSchema = new mongoose.Schema({
@@ -401,134 +294,59 @@ const roleSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model("Role", roleSchema);
-
-
 ```
 
-## 🧪 Development & Testing Setup
+---
 
-- You can populate roles using MongoDB shell or Compass:
+## 🧪 Development & Testing  
 
-- use following json data to create role model, if needed
+Sample roles JSON to seed database:  
 
-```jssn
-
-[{
-  "_id": {
-    "$oid": "6837b60b735077d2866f126b"
-  },
-  "name": "admin",
-  "permissions": [
-    "role:manage",
-    "role:create",
-    "role:update",
-    "systemusers:manage",
-    "systemusers:create",
-    "systemusers:update",
-    "permission:manage",
-    "permission:create",
-    "permission:update",
-    "permission:delete",
-    "role:getone"
-  ],
-  "createdAt": {
-    "$date": "2025-05-29T01:19:07.542Z"
-  },
-  "updatedAt": {
-    "$date": "2025-08-15T04:39:19.866Z"
-  },
-  "__v": 45
-},
-{
-  "_id": {
-    "$oid": "6837b616735077d2866f126e"
-  },
-  "name": "staff",
-  "permissions": [],
-  "createdAt": {
-    "$date": "2025-05-29T01:19:18.585Z"
-  },
-  "updatedAt": {
-    "$date": "2025-06-20T01:24:06.714Z"
-  },
-  "__v": 38
-},
-{
-  "_id": {
-    "$oid": "6843973fea08c312b1a7d4cb"
-  },
-  "name": "member",
-  "permissions": [
-    "user:create"
-  ],
-  "createdAt": {
-    "$date": "2025-06-07T01:34:55.181Z"
-  },
-  "updatedAt": {
-    "$date": "2025-08-15T03:25:26.656Z"
-  },
-  "__v": 4
-},
-{
-  "_id": {
-    "$oid": "68439748ea08c312b1a7d4d6"
-  },
-  "name": "user",
-  "permissions": [
-    "case:view"
-  ],
-  "createdAt": {
-    "$date": "2025-06-07T01:35:04.435Z"
-  },
-  "updatedAt": {
-    "$date": "2025-08-15T05:19:28.746Z"
-  },
-  "__v": 12
-}]
-
-
+```json
+[
+  { "name": "admin", "permissions": ["role:manage","role:create","role:update","systemusers:manage","systemusers:create","systemusers:update","permission:manage","permission:create","permission:update","permission:delete","role:getone"] },
+  { "name": "staff", "permissions": [] },
+  { "name": "member", "permissions": ["user:create"] },
+  { "name": "user", "permissions": ["case:view"] }
+]
 ```
 
+---
 
-## 🔮 Future Roadmap
+## 🔮 Roadmap  
 
-✅ Rate limiting
+- ✅ Rate limiting  
+- ✅ CSRF protection (toggleable)  
+- 🔁 Refresh tokens  
+- 🔒 2FA integration  
+- 🌐 OAuth2 / SSO login  
+- 🧑‍💻 Admin panel templates (React + Tailwind)  
+- 🧠 Advanced audit logging & IP tracking  
+- 📊 Usage analytics  
 
-✅ CSRF protection (toggleable)
+---
 
-🔁 Refresh tokens
+## 📌 Versioning  
 
-🔒 2FA integration
+| Version       | Notes                                          |
+|---------------|-----------------------------------------------|
+| v1.0.0        | Initial release                               |
+| v2.0.0        | Added email verification + password reset     |
+| v3.0.0        | Bug fixes, **no rate limits for Admins**      |
+| v4.0.0-beta1  | Under development (use v3.0.0 for production) |
 
-🌐 OAuth2 / SSO login
+---
 
-🧑‍💻 Admin panel templates (React + Tailwind)
+## 🤝 Contributing  
 
-🧠 Audit logging & IP tracking
+We welcome contributions! 🚀  
 
-📊 Usage analytics
+- Fork the repo  
+- Run locally with `npm install`  
+- Submit PRs or open issues  
 
+---
 
-## Versioning
+## 🙌 Acknowledgments  
 
-| Version | Description                                      |
-|---------|--------------------------------------------------|
-| v1.0.0  | Initial release                                  |
-| v2.0.0  | Added email verification and forgot password     |
-| v3.0.0  | fix bugs in v2.0.0, no rate limites for `admin`  |
-| v4.0.0-beta1  | in-development (please use v3.0.0)  |
-
-
-## 🤝 Contributing
-We welcome contributions! To get started:
-
-- Fork the repo
-
-- Run it locally (npm install)
-
-- Submit pull requests or open issues
-
-
-## 🙌 Acknowledgments
-
-Built with ❤️ for MERN developers who value security-first architecture.
+Built with ❤️ for **MERN developers** who value **security-first architecture**.  
