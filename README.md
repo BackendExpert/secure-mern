@@ -26,7 +26,11 @@ A lightweight yet powerful npm package to enhance security in MERN stack applica
 
 🌱 Easy to plug into any existing or new MERN stack app
 
+👤 User profile management (update & view profile image) — Additional development needed
 
+🔒 User password update via dashboard — Additional development needed
+
+📑 User activity logs automatically recorded — Additional development needed
 
 ## 📦 Installation
 

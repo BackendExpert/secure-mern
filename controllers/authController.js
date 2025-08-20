@@ -5,7 +5,10 @@ const bcrypt = require("bcrypt");
 const generateToken = require("../utils/generateToken");
 const crypto = require('crypto')
 const sendEmail = require("../utils/emailTransporter");
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const logUserAction = require("../../../utils/logUserAction");
+const ProfileImage = require("../models/ProfileImage");
+const { decode } = require("punycode");
 
 const authContorller = {
     register: async (req, res) => {
@@ -25,7 +28,7 @@ const authContorller = {
 
             const hashpass = await bcrypt.hash(password, 10)
 
-            const getroleid = await Role.findOne({ name: 'guest' })
+            const getroleid = await Role.findOne({ name: 'member' })
 
             const createuser = new User({
                 username: username,
@@ -146,6 +149,21 @@ const authContorller = {
             if (updateuser) {
                 const deleteotp = await UserOTP.findOneAndDelete({ email: decoded.email });
                 if (deleteotp) {
+
+                    const metadata = {
+                        ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                        userAgent: req.headers['user-agent'],
+                        loginTime: new Date()
+                    };
+
+                    await logUserAction(
+                        req,
+                        'email_verify',
+                        `${decoded.email} Email Verified`,
+                        metadata,
+                        user._id
+                    );
+
                     return res.json({ success: true, message: "Email Verification Successful" });
                 }
             } else {
@@ -198,6 +216,21 @@ const authContorller = {
                 '1d'
             );
 
+            const metadata = {
+                ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                userAgent: req.headers['user-agent'],
+                loginTime: new Date()
+            };
+
+            await logUserAction(
+                req,
+                'user_login',
+                `${email} logged in`,
+                metadata,
+                checkuser._id
+            );
+
+
             return res.json({ success: true, token: token, message: "Login Success" })
         }
         catch (err) {
@@ -212,7 +245,9 @@ const authContorller = {
             const checkemail = await User.findOne({ email: email })
 
             if (!checkemail) {
+
                 return res.json({ success: false, message: "Email Address Cannot Found,.. Please check the email Address and Try Again" })
+
             }
             const checkotp = await UserOTP.findOne({ email: email })
 
@@ -267,6 +302,21 @@ const authContorller = {
                     },
                     '15min'
                 );
+
+                const metadata = {
+                    ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                    userAgent: req.headers['user-agent'],
+                    loginTime: new Date()
+                };
+
+                await logUserAction(
+                    req,
+                    'request_password_reset',
+                    `${email} Request Password Reset code`,
+                    metadata,
+                    checkemail._id
+                );
+
                 return res.json({ success: true, token: token, message: "Password Reset Code has been send to email, check the emails" })
             }
             else {
@@ -306,13 +356,40 @@ const authContorller = {
             const checkotp = await bcrypt.compare(otp, checkotprecode.otp)
 
             if (!checkotp) {
+                const metadata = {
+                    ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                    userAgent: req.headers['user-agent'],
+                    loginTime: new Date()
+                };
+
+                await logUserAction(
+                    req,
+                    'wrong_otp_passreset',
+                    `${decoded.email} Enter Wrong OTP ${otp} when password reset`,
+                    metadata,
+                    user._id
+                );
                 return res.json({ success: false, message: "OTP not Match, Please check the OTP" })
             }
 
             const deleteotprecode = await UserOTP.findOneAndDelete({ email: decoded.email })
 
             if (deleteotprecode) {
-                return res.json({ success: false, message: "OTP Verification Successfull" })
+
+                const metadata = {
+                    ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                    userAgent: req.headers['user-agent'],
+                    loginTime: new Date()
+                };
+
+                await logUserAction(
+                    req,
+                    'otp_verify_success',
+                    `${decoded.email} Password Reset OTP verify Success`,
+                    metadata,
+                    user._id
+                );
+                return res.json({ success: true, message: "OTP Verification Successfull" })
             }
             else {
                 return res.json({ success: false, message: "Internal Server Error" })
@@ -339,7 +416,7 @@ const authContorller = {
                 return res.status(400).json({ message: "Invalid token." });
             }
 
-            console.log("Decoded Token:", decoded);
+            // console.log("Decoded Token:", decoded);
 
             const user = await User.findOne({ email: decoded.email }).select("-password");
             if (!user) return res.status(404).json({ message: "User not found" });
@@ -354,11 +431,180 @@ const authContorller = {
             );
 
             if (updatedUser) {
+                const metadata = {
+                    ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+                    userAgent: req.headers['user-agent'],
+                    loginTime: new Date()
+                };
+
+                await logUserAction(
+                    req,
+                    'passupdate_success',
+                    `${decoded.email} Update Password Success`,
+                    metadata,
+                    user._id
+                );
                 return res.json({ success: true, message: "Password updated successfully." });
             } else {
                 return res.status(500).json({ success: false, message: "Internal server error." });
             }
         } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Server error." });
+        }
+    },
+
+    update_pass_viadash: async (req, res) => {
+        try {
+            const token = req.header("Authorization")?.replace("Bearer ", "");
+            if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
+
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token expired. Please log in again." });
+                }
+                return res.status(400).json({ message: "Invalid token." });
+            }
+
+            // console.log("Decoded Token:", decoded);
+
+            const user = await User.findOne({ email: decoded.email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            const {
+                current_pass,
+                new_pass,
+            } = req.body
+
+            const checkcurrentpass = await bcrypt.compare(current_pass, user.password)
+
+            if (!checkcurrentpass) {
+                return res.json({ success: false, message: "Current Password not Match..." })
+            }
+
+            if (new_pass.length < 6) {
+                return res.json({ success: false, message: "New Password Must be 6 or more characters" })
+            }
+
+            if (current_pass === new_pass) {
+                return res.json({ success: false, message: "Same Password cannot be Updated" })
+            }
+
+            const hashnewpass = await bcrypt.hash(new_pass, 10)
+
+            const update_pass = await User.findOneAndUpdate(
+                { email: decoded.email },
+                {
+                    $set: {
+                        password: hashnewpass
+                    }
+                },
+                { new: true }
+            )
+
+            if (update_pass) {
+                await logUserAction(
+                    req,
+                    'pass_update_via_dashboard',
+                    `${decoded.email} Update Password via Dashboard->Prifile Success`,
+                    user._id
+                );
+                return res.json({ success: true, message: "Password Updated Success" })
+            }
+            else {
+                return res.json({ success: false, message: "Internal Sever error while Updating Password " })
+            }
+
+
+        }
+        catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Server error." });
+        }
+    },
+
+    update_profile_image: async (req, res) => {
+        try {
+            const token = req.header("Authorization")?.replace("Bearer ", "");
+            if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
+
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token expired. Please log in again." });
+                }
+                return res.status(400).json({ message: "Invalid token." });
+            }
+
+            // console.log("Decoded Token:", decoded);
+
+            const user = await User.findOne({ email: decoded.email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: "No image uploaded" });
+            }
+
+            const profileImageDoc = await ProfileImage.findOneAndUpdate(
+                { email: decoded.email },
+                { profile_image: req.file.path },
+                { new: true, upsert: true }
+            );
+
+            if (profileImageDoc) {
+                await logUserAction(
+                    req,
+                    'profile_image_updated',
+                    `${decoded.email} Update Profile Image Success`,
+                    user._id
+                );
+                return res.json({ success: true, message: "Profile Image Updated Success" })
+            }
+            else {
+                return res.json({ success: false, message: "Internal Server Error" })
+            }
+
+        }
+        catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Server error." });
+        }
+    },
+
+    get_profile_img: async (req, res) => {
+        try {
+            const token = req.header("Authorization")?.replace("Bearer ", "");
+            if (!token) return res.status(401).json({ message: "Access denied. No token provided." });
+
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (err) {
+                if (err.name === "TokenExpiredError") {
+                    return res.status(401).json({ message: "Token expired. Please log in again." });
+                }
+                return res.status(400).json({ message: "Invalid token." });
+            }
+
+            // console.log("Decoded Token:", decoded);
+
+            const user = await User.findOne({ email: decoded.email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            const getprofileimg = await ProfileImage.findOne({ email: decoded.email })
+
+            return res.json({
+                success: true,
+                result: getprofileimg
+            });
+
+        }
+        catch (err) {
             console.error(err);
             return res.status(500).json({ message: "Server error." });
         }
