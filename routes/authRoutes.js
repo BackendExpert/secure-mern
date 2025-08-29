@@ -2,7 +2,7 @@ const express = require('express');
 const authController = require('../controllers/authController');
 const auth = require('../middlewares/authMiddleware');
 const router = express.Router();
-const upload = require("../../../middlewares/uploadMiddleware"); 
+const upload = require("../middlewares/uploadMiddleware"); 
 
 router.post('/register', authController.register)
 router.post('/verify-email', authController.veriftEamilOTP)

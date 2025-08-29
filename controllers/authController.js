@@ -6,7 +6,7 @@ const generateToken = require("../utils/generateToken");
 const crypto = require('crypto')
 const sendEmail = require("../utils/emailTransporter");
 const jwt = require('jsonwebtoken');
-const logUserAction = require("../../../utils/logUserAction");
+const logUserAction = require("../utils/logUserAction");
 const ProfileImage = require("../models/ProfileImage");
 const { decode } = require("punycode");
 

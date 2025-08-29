@@ -1,6 +1,6 @@
 {
   "name": "secure-mern",
-  "version": "4.0.0-beta1",
+  "version": "4.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
