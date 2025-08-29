@@ -46,6 +46,72 @@ npm i secure-mern
 
 ---
 
+## ⚠️ Limitation (Important)
+
+- When registering a new user, you may encounter a role _id error.
+
+- 👉 To fix this: upload the following Role collection to your MongoDB.
+Run the backend once (it will auto-create the models in MongoDB/Compass). Then import this JSON into your Role collection:
+
+
+```json
+
+[{
+  "_id": { "$oid": "6837b60b735077d2866f126b" },
+  "name": "admin",
+  "permissions": [
+    "role:manage",
+    "role:create",
+    "role:update",
+    "systemusers:manage",
+    "systemusers:create",
+    "systemusers:update",
+    "permission:manage",
+    "permission:create",
+    "permission:update",
+    "permission:delete",
+    "role:getone",
+    "role:delete",
+    "user:updatestatus",
+    "useractivity:manage",
+    "useractivity:oneget"
+  ],
+  "createdAt": { "$date": "2025-05-29T01:19:07.542Z" },
+  "updatedAt": { "$date": "2025-08-19T14:44:25.137Z" },
+  "__v": 45
+},
+{
+  "_id": { "$oid": "6837b616735077d2866f126e" },
+  "name": "staff",
+  "permissions": [],
+  "createdAt": { "$date": "2025-05-29T01:19:18.585Z" },
+  "updatedAt": { "$date": "2025-08-19T14:57:41.167Z" },
+  "__v": 38
+},
+{
+  "_id": { "$oid": "6843973fea08c312b1a7d4cb" },
+  "name": "user",
+  "permissions": [],
+  "createdAt": { "$date": "2025-06-07T01:34:55.181Z" },
+  "updatedAt": { "$date": "2025-08-15T12:24:48.025Z" },
+  "__v": 4
+},
+{
+  "_id": { "$oid": "68439748ea08c312b1a7d4d6" },
+  "name": "member",
+  "permissions": [],
+  "createdAt": { "$date": "2025-06-07T01:35:04.435Z" },
+  "updatedAt": { "$date": "2025-08-15T12:25:08.129Z" },
+  "__v": 12
+}]
+
+
+
+```
+
+
+---
+
 ## 🚀 Quick Start  
 
 Example Express app setup:  
