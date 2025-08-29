@@ -5,24 +5,6 @@ Built with **enterprise-grade architecture** in mind, Secure-MERN integrates ess
 
 ---
 
-## ⚠️ Important Notice  
-
-- **Latest Version:** `v4.0.0-beta1` *(under development)*  
-- **Recommended Version:** `v3.0.0` *(stable & production-ready)*  
-
-📦 Install v3.0.0 directly:  
-
-```bash
-npm i secure-mern@3.0.0
-```
-
-👉 You may still use **v4.0.0-beta1** (production-ready), but it contains known bugs under active development.  
-
-🔗 Development branch for `v4.0.0-beta1`:  
-[Secure-MERN GitRepo v4.0.0-beta1](https://github.com/BackendExpert/secure-mern/tree/v4.0.0)  
-
----
-
 ## ✅ Features  
 
 - 🔐 Preconfigured **JWT-based authentication**  
@@ -40,6 +22,19 @@ npm i secure-mern@3.0.0
 - 📑 **Automatic user activity logs** *(requires setup — guide below)*  
 
 ---
+
+## ✅ What’s New in v4.0.0
+
+- 🆕 Built-in Upload middleware (no need for custom setup)
+
+- 🆕 Built-in Userlog model
+
+- 🆕 Built-in Userlog utility
+
+- 🐞 Fixed major bugs from v3.0.0 & v4.0.0-beta1
+
+- ⚡ Default role = member when registering new users
+
 
 ## 📦 Installation  
 
