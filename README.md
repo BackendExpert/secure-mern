@@ -109,6 +109,22 @@ Run the backend once (it will auto-create the models in MongoDB/Compass). Then i
 
 ```
 
+---
+
+
+## 🔑 Default Role Behavior
+
+- Every newly registered user is automatically assigned the member role.
+
+- If you want to promote a user to admin, follow these steps:
+
+- - Go to the User collection in MongoDB.
+
+- - Export the user document as .json.
+
+- - Update the user’s role field with the Admin role _id (6837b60b735077d2866f126b).
+
+- - Re-import the updated JSON back into the User collection.
 
 ---
 
@@ -153,88 +169,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 - Create an `uploads` folder in your **backend root**  
 - Add `uploads/` to `.gitignore`  
-- Create a custom **upload middleware** (not included by default):  
-
-📄 `middlewares/uploadMiddleware.js`  
-
-```js
-const multer = require("multer");
-const path = require("path");
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, "uploads/"),
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-
-const upload = multer({ storage });
-
-module.exports = upload;
-```
 
 ---
 
-### 📝 User Activity Logs  
-
-📄 `models/Userlogs.js`  
-
-```js
-const mongoose = require('mongoose');
-
-const UserlogsSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    action: { type: String, required: true, default: 'other' },
-    description: { type: String, trim: true },
-    ipAddress: { type: String },
-    userAgent: { type: String },
-    metadata: { type: Object, default: {} }
-}, { timestamps: true });
-
-module.exports = mongoose.model('Userlogs', UserlogsSchema);
-```
-
-📄 `utils/logUserAction.js`  
-
-```js
-const Userlogs = require('../models/Userlogs');
-const User = require('../node_modules/secure-mern/models/User');
-const jwt = require('jsonwebtoken');
-
-const logUserAction = async (req, action, description, metadata = {}, userId = null) => {
-    try {
-        let finalUserId = userId;
-
-        if (!finalUserId) {
-            const token = req.header("Authorization")?.replace("Bearer ", "");
-            if (token) {
-                try {
-                    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                    const user = await User.findOne({ email: decoded.email });
-                    if (user) finalUserId = user._id;
-                } catch {
-                    console.warn("Token invalid or expired. Provide userId manually if needed.");
-                }
-            }
-        }
-
-        if (!finalUserId) throw new Error("No userId provided and token not found or invalid");
-
-        await Userlogs.create({
-            user: finalUserId,
-            action,
-            description,
-            ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-            userAgent: req.headers['user-agent'],
-            metadata
-        });
-    } catch (err) {
-        console.error("Failed to log user action:", err.message);
-    }
-};
-
-module.exports = logUserAction;
-```
-
----
 
 ### 🖼 Profile Image Management  
 
@@ -303,23 +240,29 @@ EMAIL_PASSWORD=your_app_password
 
 ---
 
-## 🧰 Included Middleware  
+## 🧰 Included Middleware & Features
 
-| Middleware             | Purpose                                                   |
-|-------------------------|-----------------------------------------------------------|
-| `cors`                 | Enables CORS (cross-origin requests)                      |
-| `helmet`               | Adds secure HTTP headers                                  |
-| `express.json()`       | Parses incoming JSON                                     |
-| `cookie-parser`        | Parses cookies (needed for CSRF)                         |
-| `morgan`               | HTTP request logger                                      |
-| `express-rate-limit`   | Protects against brute-force (100 reqs/15min)            |
-| *(Admin exception)*    | No rate limit for `admin` role                           |
-| `csurf` (optional)     | CSRF protection (disabled by default)                     |
-| `/auth` routes         | Built-in authentication routes                           |
-| Profile image support  | Upload & view profile image                              |
-| Activity tracking      | Auto-records user actions                                |
+This project comes with several built-in middlewares and utilities to simplify development and enhance security.
+
+| Feature / Middleware   | Purpose |
+|-------------------------|---------|
+| **cors**               | Enables CORS (cross-origin requests) |
+| **helmet**             | Adds secure HTTP headers |
+| **express.json()**     | Parses incoming JSON |
+| **cookie-parser**      | Parses cookies (required for CSRF protection) |
+| **morgan**             | HTTP request logger for debugging |
+| **express-rate-limit** | Protects against brute-force attacks (100 reqs / 15 min) |
+| *(Admin exception)*    | Admin role is exempt from rate limits |
+| **csurf (optional)**   | CSRF protection (disabled by default) |
+| **/auth routes**       | Built-in authentication routes (login, register, etc.) |
+| **Upload Middleware**  | Integrated Multer upload support (no setup required) |
+| **Userlogs Model**     | Tracks user activity (login, logout, actions) |
+| **Userlogs Util**      | Helper for automatically logging user actions |
+| **Profile Image Support** | Upload and view user profile images |
 
 ---
+✅ Everything is pre-configured, so you can focus on building your application logic instead of boilerplate setup.
+
 
 ## 👥 Models  
 
@@ -359,44 +302,37 @@ module.exports = mongoose.model("Role", roleSchema);
 
 ---
 
-## 🧪 Development & Testing  
+## 🔮 Roadmap
 
-Sample roles JSON to seed database:  
+Planned & completed features for upcoming versions:
 
-```json
-[
-  { "name": "admin", "permissions": ["role:manage","role:create","role:update","systemusers:manage","systemusers:create","systemusers:update","permission:manage","permission:create","permission:update","permission:delete","role:getone"] },
-  { "name": "staff", "permissions": [] },
-  { "name": "member", "permissions": ["user:create"] },
-  { "name": "user", "permissions": ["case:view"] }
-]
-```
-
----
-
-## 🔮 Roadmap  
-
-- ✅ Rate limiting  
-- ✅ CSRF protection (toggleable)  
+- ✅ Built-in Upload middleware  
+- ✅ Built-in Userlogs (model + util)  
+- ✅ Bug fixes from v3 & beta  
 - 🔁 Refresh tokens  
-- 🔒 2FA integration  
-- 🌐 OAuth2 / SSO login  
+- 🔒 2FA (Two-Factor Authentication) integration  
+- 🌐 OAuth2 / SSO login support  
 - 🧑‍💻 Admin panel templates (React + Tailwind)  
 - 🧠 Advanced audit logging & IP tracking  
 - 📊 Usage analytics  
 
+
+## 📌 Versioning
+
+This project follows **semantic versioning**. Below is the release history:
+
+| Version      | Notes |
+|--------------|-------|
+| **v1.0.0**   | Initial release |
+| **v2.0.0**   | Added email verification + password reset |
+| **v3.0.0**   | Bug fixes, no rate limits for Admins |
+| **v4.0.0-beta1** | Beta release, known bugs present |
+| **v4.0.0**   | Stable release, built-in upload + user logs |
+
 ---
 
-## 📌 Versioning  
+🚀 Always use the **latest stable release** for production.
 
-| Version       | Notes                                          |
-|---------------|-----------------------------------------------|
-| v1.0.0        | Initial release                               |
-| v2.0.0        | Added email verification + password reset     |
-| v3.0.0        | Bug fixes, **no rate limits for Admins**      |
-| v4.0.0-beta1  | Under development (use v3.0.0 for production) |
-
----
 
 ## 🤝 Contributing  
 
